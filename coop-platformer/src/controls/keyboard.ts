@@ -7,25 +7,34 @@ class KeyboardControl {
   public moveRight: boolean = false;
   public jump: boolean = false;
   public run: boolean = false;
+  public firstCamera: boolean = false;
 
   constructor() {
+    window.addEventListener('keypress', (event) => {
+      switch (event.code) {
+        case 'KeyQ':
+          this.firstCamera = !this.firstCamera;
+          break;
+      }
+    });
+
     window.addEventListener('keydown', (event) => {
       switch (event.code) {
         case 'KeyW':
-          this.moveForward = true;
-          this.moveBackward = false;
-          break;
-        case 'KeyA':
-          this.moveLeft = true;
-          this.moveRight = false;
-          break;
-        case 'KeyS':
           this.moveForward = false;
           this.moveBackward = true;
           break;
-        case 'KeyD':
-          this.moveRight = true;
+        case 'KeyA':
           this.moveLeft = false;
+          this.moveRight = true;
+          break;
+        case 'KeyS':
+          this.moveForward = true;
+          this.moveBackward = false;
+          break;
+        case 'KeyD':
+          this.moveLeft = true;
+          this.moveRight = false;
           break;
         case 'Space':
           this.jump = true;
@@ -39,16 +48,16 @@ class KeyboardControl {
     window.addEventListener('keyup', (event) => {
       switch (event.code) {
         case 'KeyW':
-          this.moveForward = false;
-          break;
-        case 'KeyA':
-          this.moveLeft = false;
-          break;
-        case 'KeyS':
           this.moveBackward = false;
           break;
-        case 'KeyD':
+        case 'KeyA':
           this.moveRight = false;
+          break;
+        case 'KeyS':
+          this.moveForward = false;
+          break;
+        case 'KeyD':
+          this.moveLeft = false;
           break;
         case 'Space':
           this.jump = false;
@@ -61,11 +70,10 @@ class KeyboardControl {
   }
 
   public getVector(): Vector3 {
-    const speed = this.run ? 2 : 1;
     return new Vector3(
-      (this.moveRight ? speed : 0) - (this.moveLeft ? speed : 0),
-      (this.moveForward ? speed : 0) - (this.moveBackward ? speed : 0),
-      0
+      (this.moveRight ? 1 : 0) - (this.moveLeft ? 1 : 0),
+      0,
+      (this.moveBackward ? 1 : 0) - (this.moveForward ? 1 : 0)
     );
   }
 }
