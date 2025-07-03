@@ -15,6 +15,9 @@ class KeyboardControl {
         case 'KeyQ':
           this.firstCamera = !this.firstCamera;
           break;
+        case 'Space':
+          this.jump = true;
+          break;
       }
     });
 
@@ -36,9 +39,6 @@ class KeyboardControl {
           this.moveLeft = true;
           this.moveRight = false;
           break;
-        case 'Space':
-          this.jump = true;
-          break;
         case 'ShiftLeft':
           this.run = true;
           break;
@@ -58,9 +58,6 @@ class KeyboardControl {
           break;
         case 'KeyD':
           this.moveLeft = false;
-          break;
-        case 'Space':
-          this.jump = false;
           break;
         case 'ShiftLeft':
           this.run = false;

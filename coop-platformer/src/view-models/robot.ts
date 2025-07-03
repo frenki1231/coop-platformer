@@ -11,6 +11,8 @@ class Robot extends Player {
   protected readonly walkAnimationName = 'RobotArmature|Robot_Walking' as const;
   protected readonly stayAnimationName = 'RobotArmature|Robot_Yes' as const;
   protected readonly runAnimationName = 'RobotArmature|Robot_Running' as const;
+  protected readonly jumpAnimationName = 'RobotArmature|Robot_Jump' as const;
+  protected readonly jumpIdleAnimationName = 'RobotArmature|Robot_Idle' as const;
 
   constructor() {
     super();
@@ -18,18 +20,6 @@ class Robot extends Player {
 
   protected rotateGlft(): void {
     this.glft.scene.rotateX(Math.PI / 2);
-  }
-
-  protected setRunAnimation(): void {
-    this.setAnimation(this.runAnimationName);
-  }
-
-  protected setStayAnimation(): void {
-    this.setAnimation(this.stayAnimationName);
-  }
-
-  protected setWalkAnimation(): void {
-    this.setAnimation(this.walkAnimationName);
   }
 }
 

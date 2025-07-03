@@ -11,6 +11,8 @@ class Yeti extends Player {
   protected readonly walkAnimationName = 'CharacterArmature|Walk' as const;
   protected readonly stayAnimationName = 'CharacterArmature|Yes' as const;
   protected readonly runAnimationName = 'CharacterArmature|Run' as const;
+  protected readonly jumpAnimationName = 'CharacterArmature|Jump' as const;
+  protected readonly jumpIdleAnimationName = 'CharacterArmature|Jump_Idle' as const;
 
   constructor() {
     super();
@@ -18,18 +20,6 @@ class Yeti extends Player {
 
   protected rotateGlft(): void {
     this.glft.scene.rotateX(Math.PI / 2);
-  }
-
-  protected setRunAnimation(): void {
-    this.setAnimation(this.runAnimationName);
-  }
-
-  protected setStayAnimation(): void {
-    this.setAnimation(this.stayAnimationName);
-  }
-
-  protected setWalkAnimation(): void {
-    this.setAnimation(this.walkAnimationName);
   }
 }
 
