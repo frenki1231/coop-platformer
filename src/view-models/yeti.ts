@@ -13,6 +13,8 @@ class Yeti extends Player {
   protected readonly runAnimationName = 'CharacterArmature|Run' as const;
   protected readonly jumpAnimationName = 'CharacterArmature|Jump' as const;
   protected readonly jumpIdleAnimationName = 'CharacterArmature|Jump_Idle' as const;
+  protected readonly deathAnimationName = 'CharacterArmature|Death' as const;
+  protected startPosition: Vector3 = new Vector3(1, 3, 3);
 
   constructor() {
     super();

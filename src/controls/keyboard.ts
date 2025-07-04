@@ -8,6 +8,7 @@ class KeyboardControl {
   public jump: boolean = false;
   public run: boolean = false;
   public firstCamera: boolean = false;
+  public resetUser: boolean = false;
 
   constructor() {
     window.addEventListener('keypress', (event) => {
@@ -17,6 +18,9 @@ class KeyboardControl {
           break;
         case 'Space':
           this.jump = true;
+          break;
+        case 'KeyR':
+          this.resetUser = true;
           break;
       }
     });

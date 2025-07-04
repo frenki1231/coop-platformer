@@ -1,6 +1,7 @@
 import {
   AnimationMixer,
   PerspectiveCamera,
+  Raycaster,
   Vector3,
   type AnimationAction,
   type Scene,
@@ -16,14 +17,21 @@ export abstract class Player {
   protected abstract runAnimationName: string;
   protected abstract jumpAnimationName: string;
   protected abstract jumpIdleAnimationName: string;
+  protected abstract deathAnimationName: string;
   protected abstract pathToModel: string;
-  protected lastAnimation: string = '';
   protected abstract glft: GLTF;
   protected abstract mixer: AnimationMixer;
   protected abstract animation: AnimationAction;
+  protected abstract startPosition: Vector3;
   protected abstract rotateGlft(): void;
+
   protected isReadyForJump: boolean = true;
+  protected lastAnimation: string = '';
   protected jumpSpeed = 0;
+  protected isAlive: boolean = true;
+  protected rayCaster = new Raycaster();
+  protected downVector = new Vector3(0, -1, 0);
+  protected scene: Scene;
 
   async init(scene: Scene, camera: PerspectiveCamera): Promise<void> {
     camera.rotateY(Math.PI);
@@ -35,27 +43,35 @@ export abstract class Player {
     this.animation = this.mixer.clipAction(this.glft.animations[0]);
     this.animation.play();
     this.lastAnimation = this.glft.animations[0].name;
-    this.glft.scene.position.set(0, 0, 0);
+    this.glft.scene.position.set(this.startPosition.x, this.startPosition.y, this.startPosition.z);
     this.glft.scene.add(camera);
+    this.scene = scene;
     scene.add(this.glft.scene);
-    console.log(this.glft.animations);
     //this.rotateGlft();
   }
 
   public renderAnimation(delta: number): void {
     if (!this.glft || !this.mixer) return;
-    const { firstCamera, jump } = keyboardControl;
-    if (firstCamera === this.isFirstCamera) {
-      this.move(delta);
-      if (jump) {
-        if (this.isReadyForJump) {
-          this.isReadyForJump = false;
-          this.jumpSpeed = JUMP_SPEED;
+    if (this.isAlive) {
+      const { firstCamera, jump } = keyboardControl;
+      if (firstCamera === this.isFirstCamera) {
+        this.move(delta);
+        if (jump) {
+          if (this.isReadyForJump) {
+            this.isReadyForJump = false;
+            this.jumpSpeed = JUMP_SPEED;
+          }
+          this.jump();
         }
-        this.jump();
+      } else {
+        this.setStayAnimation();
       }
     } else {
-      this.setStayAnimation();
+      const { resetUser } = keyboardControl;
+      if (resetUser) {
+        keyboardControl.resetUser = false;
+        this.resetUser();
+      }
     }
     this.mixer.update(delta);
   }
@@ -64,7 +80,11 @@ export abstract class Player {
     this.glft.scene.position.y += this.jumpSpeed;
     this.jumpSpeed -= 0.02;
     this.setJumpAnimation();
-    if (this.glft.scene.position.y <= 0) {
+    if (this.jumpSpeed < -2) {
+      this.setDeathAnimation();
+      keyboardControl.jump = false;
+    }
+    if (!this.isFalling()) {
       this.isReadyForJump = true;
       keyboardControl.jump = false;
     }
@@ -99,9 +119,44 @@ export abstract class Player {
         this.setStayAnimation();
       }
     }
+    if (!keyboardControl.jump) {
+      if (this.isFalling()) {
+        this.isReadyForJump = false;
+        this.falling();
+      } else {
+        this.isReadyForJump = true;
+        this.jumpSpeed = 0;
+      }
+    }
   }
 
-  protected setAnimation(name: string, repetitions = Infinity): void {
+  protected isFalling(): boolean {
+    this.rayCaster.set(this.glft.scene.position, this.downVector);
+    const intersects = this.rayCaster.intersectObjects(this.scene.children);
+    return intersects.length === 0 || intersects[0].distance > 0.5;
+  }
+
+  protected falling(): void {
+    this.setAnimation(this.jumpIdleAnimationName);
+    this.glft.scene.position.y += this.jumpSpeed;
+    this.jumpSpeed -= 0.01;
+    if (this.jumpSpeed < -2) {
+      this.setDeathAnimation();
+    }
+  }
+
+  protected resetUser(): void {
+    this.glft.scene.position.set(this.startPosition.x, this.startPosition.y, this.startPosition.z);
+    this.isAlive = true;
+    this.isReadyForJump = true;
+    this.jumpSpeed = 0;
+    this.glft.scene.rotation.y = 0;
+    this.glft.scene.rotation.x = 0;
+    this.glft.scene.rotation.z = 0;
+    this.setAnimation(this.stayAnimationName);
+  }
+
+  protected setAnimation(name: string, repetitions = Infinity, clampWhenFinished = false): void {
     const animation = this.glft.animations.find((animation) => animation.name === name);
     if (this.lastAnimation === name) return;
     if (animation) {
@@ -109,6 +164,7 @@ export abstract class Player {
       this.mixer.stopAllAction();
       this.animation = this.mixer.clipAction(animation);
       this.animation.repetitions = repetitions;
+      this.animation.clampWhenFinished = clampWhenFinished;
       this.animation.play();
     }
   }
@@ -125,11 +181,16 @@ export abstract class Player {
     this.setAnimation(this.walkAnimationName);
   }
 
+  protected setDeathAnimation(): void {
+    this.isAlive = false;
+    this.setAnimation(this.deathAnimationName, 1, true);
+  }
+
   protected setJumpAnimation(): void {
     if (this.lastAnimation === this.jumpIdleAnimationName) return;
     this.setAnimation(this.jumpAnimationName, 1);
     if (this.lastAnimation === this.jumpAnimationName && !this.animation.isRunning()) {
-      this.setAnimation(this.jumpIdleAnimationName, Infinity);
+      this.setAnimation(this.jumpIdleAnimationName);
     }
   }
 }
