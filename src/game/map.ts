@@ -1,6 +1,6 @@
-import { Group } from "three";
-import { mapChunks, mapTiles, tileSize } from "../config/constants";
-import { createBlock } from "./block";
+import { Group } from 'three';
+import { mapChunks, mapTiles, tileSize } from '../config/constants';
+import { createBlock } from './block';
 
 // MAP CONFIG
 export const map = new Group();
@@ -16,7 +16,6 @@ export const generateMap = () => {
 
         const globalX = chunkX * mapTiles * tileSize + colIndex;
         const globalZ = chunkZ * mapTiles * tileSize + rowIndex;
-
         const block = createBlock(tileType, globalX, globalZ);
         map.add(block);
       }
