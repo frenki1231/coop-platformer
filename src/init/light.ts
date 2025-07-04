@@ -1,10 +1,10 @@
-import { AmbientLight, DirectionalLight, HemisphereLight, Vector3 } from "three";
+import { AmbientLight, DirectionalLight, HemisphereLight, Vector3 } from 'three';
 
 export const ambientLight = new AmbientLight(0xffffff, 1.5);
-export const dirLight = new DirectionalLight(0xffffff, 1);
-export const hemLight = new HemisphereLight(0x87CEEB, 0x000000, 1);
+export const dirLight = new DirectionalLight(0xffffff, 10);
+export const hemLight = new HemisphereLight(0x87ceeb, 0x000000, 1);
 
-export const dirLightOffset = new Vector3(0, -15, 15);
+export const dirLightOffset = new Vector3(5, 10, 7.5);
 dirLight.position.copy(dirLightOffset);
 
 dirLight.target.position.set(0, 0, 0);
