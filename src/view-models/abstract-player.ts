@@ -31,6 +31,7 @@ export abstract class Player {
   protected isAlive: boolean = true;
   protected rayCaster = new Raycaster();
   protected downVector = new Vector3(0, -1, 0);
+  protected moveVector = new Vector3(0, 0, 1);
   protected scene: Scene;
 
   async init(scene: Scene, camera: PerspectiveCamera): Promise<void> {
@@ -113,7 +114,9 @@ export abstract class Player {
       ).normalize();
       const speed = keyboardControl.run ? RUN_SPEED : WALK_SPEED;
       vectorAfterRotation.multiplyScalar(delta * speed);
-      this.glft.scene.position.add(vectorAfterRotation);
+      if (this.isCanMove()) {
+        this.glft.scene.position.add(vectorAfterRotation);
+      }
     } else {
       if (this.animation && this.lastAnimation !== this.stayAnimationName && this.isReadyForJump) {
         this.setStayAnimation();
@@ -132,6 +135,16 @@ export abstract class Player {
 
   protected isFalling(): boolean {
     this.rayCaster.set(this.glft.scene.position, this.downVector);
+    const intersects = this.rayCaster.intersectObjects(this.scene.children);
+    return intersects.length === 0 || intersects[0].distance > 0.6;
+  }
+
+  protected isCanMove(): boolean {
+    const rotation = keyboardControl.moveBackward
+      ? this.glft.scene.rotation.y
+      : this.glft.scene.rotation.y - Math.PI;
+    this.moveVector.set(1 * Math.sin(rotation), 0, 1 * Math.cos(rotation));
+    this.rayCaster.set(this.glft.scene.position, this.moveVector);
     const intersects = this.rayCaster.intersectObjects(this.scene.children);
     return intersects.length === 0 || intersects[0].distance > 0.5;
   }
