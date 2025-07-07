@@ -1,5 +1,6 @@
 import {
   AnimationMixer,
+  Mesh,
   PerspectiveCamera,
   Raycaster,
   Vector3,
@@ -82,7 +83,7 @@ export abstract class Player {
     this.jumpSpeed -= 0.02;
     this.setJumpAnimation();
     if (this.jumpSpeed < -2) {
-      this.setDeathAnimation();
+      this.setDeath();
       keyboardControl.jump = false;
     }
     if (!this.isFalling()) {
@@ -122,6 +123,9 @@ export abstract class Player {
         this.setStayAnimation();
       }
     }
+    if (this.isLava()) {
+      this.setDeath();
+    }
     if (!keyboardControl.jump) {
       if (this.isFalling()) {
         this.isReadyForJump = false;
@@ -149,12 +153,20 @@ export abstract class Player {
     return intersects.length === 0 || intersects[0].distance > 0.5;
   }
 
+  protected isLava(): boolean {
+    this.rayCaster.set(this.glft.scene.position, this.downVector);
+    const intersects = this.rayCaster.intersectObjects(this.scene.children);
+    const mesh = intersects[0]?.object as Mesh;
+    const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+    return intersects.length > 0 && intersects[0].distance <= 0.6 && material.userData.type === 'l';
+  }
+
   protected falling(): void {
     this.setAnimation(this.jumpIdleAnimationName);
     this.glft.scene.position.y += this.jumpSpeed;
     this.jumpSpeed -= 0.01;
     if (this.jumpSpeed < -2) {
-      this.setDeathAnimation();
+      this.setDeath();
     }
   }
 
@@ -194,7 +206,7 @@ export abstract class Player {
     this.setAnimation(this.walkAnimationName);
   }
 
-  protected setDeathAnimation(): void {
+  protected setDeath(): void {
     this.isAlive = false;
     this.setAnimation(this.deathAnimationName, 1, true);
   }

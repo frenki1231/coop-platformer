@@ -1,6 +1,7 @@
 import { Group } from 'three';
 import { mapChunks, mapTiles, tileSize } from '../config/constants';
 import { createBlock } from './block';
+import type { TileType } from '../types/types';
 
 // MAP CONFIG
 export const map = new Group();
@@ -12,7 +13,7 @@ export const generateMap = () => {
 
     rows.forEach((row, rowIndex) => {
       for (let colIndex = 0; colIndex < row.length; colIndex++) {
-        const tileType = row[colIndex];
+        const tileType = row[colIndex] as TileType;
 
         const globalX = chunkX * mapTiles * tileSize + colIndex;
         const globalZ = chunkZ * mapTiles * tileSize + rowIndex;
