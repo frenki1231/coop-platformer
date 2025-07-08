@@ -9,7 +9,17 @@ import {
 } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { keyboardControl } from '../controls/keyboard';
-import { JUMP_SPEED, RUN_SPEED, WALK_SPEED } from '../constants/moving';
+import {
+  CHECKED_DISTANCE,
+  JUMP_SPEED,
+  JUMP_SPEED_FOR_DEATH,
+  JUMP_STEP,
+  RUN_SPEED,
+  RUN_SPEED_ON_FUEL_OIL,
+  WALK_SPEED,
+  WALK_SPEED_ON_FUEL_OIL,
+} from '../constants/moving';
+import type { TileType } from '../types/types';
 
 export abstract class Player {
   protected abstract isFirstCamera: boolean;
@@ -80,7 +90,7 @@ export abstract class Player {
 
   protected jump(): void {
     this.glft.scene.position.y += this.jumpSpeed;
-    this.jumpSpeed -= 0.02;
+    this.jumpSpeed -= JUMP_STEP;
     this.setJumpAnimation();
     if (this.jumpSpeed < -2) {
       this.setDeath();
@@ -113,8 +123,7 @@ export abstract class Player {
         0,
         cloneVector.z * Math.cos(this.glft.scene.rotation.y)
       ).normalize();
-      const speed = keyboardControl.run ? RUN_SPEED : WALK_SPEED;
-      vectorAfterRotation.multiplyScalar(delta * speed);
+      vectorAfterRotation.multiplyScalar(delta * this.getSpeed());
       if (this.isCanMove()) {
         this.glft.scene.position.add(vectorAfterRotation);
       }
@@ -123,7 +132,7 @@ export abstract class Player {
         this.setStayAnimation();
       }
     }
-    if (this.isLava()) {
+    if (this.isOnPlatform('l')) {
       this.setDeath();
     }
     if (!keyboardControl.jump) {
@@ -137,10 +146,18 @@ export abstract class Player {
     }
   }
 
+  protected getSpeed(): number {
+    if (keyboardControl.run) {
+      return this.isOnPlatform('p') ? RUN_SPEED_ON_FUEL_OIL : RUN_SPEED;
+    } else {
+      return this.isOnPlatform('p') ? WALK_SPEED_ON_FUEL_OIL : WALK_SPEED;
+    }
+  }
+
   protected isFalling(): boolean {
     this.rayCaster.set(this.glft.scene.position, this.downVector);
     const intersects = this.rayCaster.intersectObjects(this.scene.children);
-    return intersects.length === 0 || intersects[0].distance > 0.6;
+    return intersects.length === 0 || intersects[0].distance > CHECKED_DISTANCE;
   }
 
   protected isCanMove(): boolean {
@@ -150,22 +167,26 @@ export abstract class Player {
     this.moveVector.set(1 * Math.sin(rotation), 0, 1 * Math.cos(rotation));
     this.rayCaster.set(this.glft.scene.position, this.moveVector);
     const intersects = this.rayCaster.intersectObjects(this.scene.children);
-    return intersects.length === 0 || intersects[0].distance > 0.5;
+    return intersects.length === 0 || intersects[0].distance > CHECKED_DISTANCE;
   }
 
-  protected isLava(): boolean {
+  protected isOnPlatform(tileType: TileType): boolean {
     this.rayCaster.set(this.glft.scene.position, this.downVector);
     const intersects = this.rayCaster.intersectObjects(this.scene.children);
     const mesh = intersects[0]?.object as Mesh;
     const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-    return intersects.length > 0 && intersects[0].distance <= 0.6 && material.userData.type === 'l';
+    return (
+      intersects.length > 0 &&
+      intersects[0].distance <= CHECKED_DISTANCE &&
+      material.userData.type === tileType
+    );
   }
 
   protected falling(): void {
     this.setAnimation(this.jumpIdleAnimationName);
     this.glft.scene.position.y += this.jumpSpeed;
-    this.jumpSpeed -= 0.01;
-    if (this.jumpSpeed < -2) {
+    this.jumpSpeed -= JUMP_STEP;
+    if (this.jumpSpeed < JUMP_SPEED_FOR_DEATH) {
       this.setDeath();
     }
   }
