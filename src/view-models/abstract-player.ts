@@ -174,6 +174,7 @@ export abstract class Player {
     this.rayCaster.set(this.glft.scene.position, this.downVector);
     const intersects = this.rayCaster.intersectObjects(this.scene.children);
     const mesh = intersects[0]?.object as Mesh;
+    if (!mesh) return false;
     const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
     return (
       intersects.length > 0 &&
